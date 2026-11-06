@@ -1,0 +1,9 @@
+# Большой граф: общие зависимости, два цикла, лист без описания
+APP: CLI CORE LOG
+CLI: CORE PARSE
+CORE: UTIL LOG
+LOG: UTIL TIME
+PARSE: UTIL LEX
+LEX: PARSE
+UTIL: BASE
+BASE: CORE
