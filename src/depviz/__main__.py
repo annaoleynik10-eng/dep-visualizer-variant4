@@ -2,6 +2,7 @@
 import argparse
 import sys
 
+from depviz import mermaid
 from depviz.config import load_config
 from depviz.errors import DepVizError
 from depviz.graph import build_graph, find_cycles
@@ -51,6 +52,16 @@ def print_reverse(graph, label, max_depth):
           f"{', '.join(users) if users else 'none'}")
 
 
+def visualize(graph, label, out_dir):
+    """Вывести текст Mermaid, сохранить HTML и открыть изображение."""
+    diagram = mermaid.to_mermaid(graph, label)
+    print(diagram)
+    page = mermaid.save(diagram, label(graph.root), out_dir)
+    print(f"image: {page}")
+    if not mermaid.show(page):
+        print("open the file in a browser to see the image")
+
+
 def run(config):
     """Построить граф зависимостей (или обратных) и вывести его."""
     source = make_source(config)
@@ -59,10 +70,13 @@ def run(config):
         graph = build_graph(root, source.reverse_source(), config.max_depth)
         print_reverse(graph, source.label, config.max_depth)
         print_cycles(find_cycles(graph), source.label, arrow="<-")
+        return
+    graph = build_graph(root, source.dependencies, config.max_depth)
+    if config.mode == "mermaid":
+        visualize(graph, source.label, config.output_dir)
     else:
-        graph = build_graph(root, source.dependencies, config.max_depth)
         print_graph(graph, source.label, config.max_depth)
-        print_cycles(find_cycles(graph), source.label)
+    print_cycles(find_cycles(graph), source.label)
     for warning in source.warnings:
         print(f"warning: {warning}", file=sys.stderr)
 
